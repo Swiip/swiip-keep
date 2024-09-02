@@ -697,15 +697,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "server"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "tokio",
- "vercel_runtime",
-]
-
-[[package]]
 name = "sharded-slab"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -743,6 +734,15 @@ checksum = "ce305eb0b4296696835b71df73eb912e0f1ffd2556a501fcede6e0c50349191c"
 dependencies = [
  "libc",
  "windows-sys",
+]
+
+[[package]]
+name = "swiip_keep_server"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "tokio",
+ "vercel_runtime",
 ]
 
 [[package]]
