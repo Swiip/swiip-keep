@@ -1,12 +1,7 @@
-use redis::{Client, Commands};
-use regex::Regex;
+use http::Method;
 use serde_json::json;
-use std::env;
+use swiip_keep_server::set;
 use vercel_runtime::{run, Body, Error, Request, Response, StatusCode};
-
-const REDIS_KEY: &str = "my_key";
-// TO CHANGE
-const REDIS_VALUE: &str = "this is the way!";
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -14,27 +9,16 @@ async fn main() -> Result<(), Error> {
 }
 
 pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
-    let kv_url = env::var("KV_URL")?;
-
-    println!("kv_url: {}", kv_url);
-
-    let url = Regex::new("^redis:")
-        .unwrap()
-        .replace_all(&kv_url, "rediss:")
-        .to_string();
-
-    println!("url: {}", url);
-
-    let client = Client::open(url)?;
-
-    let mut con = client.get_connection()?;
-
-    con.set(REDIS_KEY, REDIS_VALUE)?;
-
-    let message = format!("Hello, I wrote \"{}\" in Redis!", REDIS_VALUE);
+    if _req.method() == Method::GET {
+        return set::handler(_req);
+    }
 
     Ok(Response::builder()
-        .status(StatusCode::OK)
+        .status(StatusCode::METHOD_NOT_ALLOWED)
         .header("Content-Type", "application/json")
-        .body(json!({ "message": message }).to_string().into())?)
+        .body(
+            json!({ "message": "Method not allowed" })
+                .to_string()
+                .into(),
+        )?)
 }

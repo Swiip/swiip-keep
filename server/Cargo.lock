@@ -974,6 +974,7 @@ dependencies = [
 name = "swiip_keep_server"
 version = "0.1.0"
 dependencies = [
+ "http",
  "redis",
  "regex",
  "serde_json",

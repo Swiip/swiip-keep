@@ -10,11 +10,12 @@ serde_json = { version = "1", features = ["raw_value"] }
 vercel_runtime = { version = "1" }
 redis = { version = "0.26.1", features = ["tls-native-tls"] }
 regex = "1.10.6"
+http = "1.1.0"
 
 
 # You can specify a library for shared logic here (optional)
-# [lib]
-# path = "src-rs/lib.rs"
+[lib]
+path = "src/lib.rs"
 
 # Each handler has to be specified as [[bin]]
 [[bin]]
