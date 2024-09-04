@@ -1,26 +1,13 @@
 use crate::{
-    redis::{get, REDIS_KEY},
-    todo::Todo,
+    redis::{get_redis_connection, read_todos},
+    serialization::build_http_response,
 };
-use redis::Commands;
-use rmp_serde::encode;
-use vercel_runtime::{Body, Error, Request, Response, StatusCode};
+use vercel_runtime::{Body, Error, Request, Response};
 
 pub fn handler(_req: Request) -> Result<Response<Body>, Error> {
-    let mut con = get()?;
+    let mut con = get_redis_connection()?;
 
-    let read: String = con.get(REDIS_KEY)?;
+    let todos = read_todos(&mut con)?;
 
-    println!("I read \"{}\" in Redis!", &read);
-
-    let received: Vec<Todo> = serde_json::from_str(&read)?;
-
-    let mut buf = Vec::new();
-    encode::write(&mut buf, &received).unwrap();
-    println!("Serialized (MessagePack): {:?}", buf);
-
-    Ok(Response::builder()
-        .status(StatusCode::OK)
-        .header("Content-Type", "application/x-msgpack")
-        .body(buf.into())?)
+    build_http_response(&todos)
 }

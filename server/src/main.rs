@@ -1,6 +1,7 @@
-use reqwest::{blocking::Client, Error};
-use rmp_serde::{decode, encode};
-use swiip_keep_server::todo::Todo;
+use reqwest::blocking::Client;
+use rmp_serde::decode;
+use swiip_keep_server::{serialization::encode, todo::Todo};
+use vercel_runtime::Error;
 
 fn main() -> Result<(), Error> {
     let todos = vec![
@@ -16,27 +17,23 @@ fn main() -> Result<(), Error> {
         },
     ];
 
-    let mut buf = Vec::new();
-    encode::write(&mut buf, &todos).unwrap();
-    println!("Serialized (MessagePack): {:?}", buf);
-
     let client = Client::new();
-    let post = client
+
+    let post_response = client
         .post("http://localhost:3000/api/handler")
-        .body(buf)
+        .body(encode(&todos)?)
         .send()?;
 
-    println!("{:#?}", post);
+    println!("post response: {:#?}", post_response);
 
-    let deserialized: String = decode::from_read(post).unwrap();
-    println!("Deserialized: {:?}", deserialized);
+    let post_response_payload: String = decode::from_read(post_response)?;
+    println!("post response payload: {:#?}", post_response_payload);
 
-    println!("{:#?}", deserialized);
+    let get_response = client.get("http://localhost:3000/api/handler").send()?;
+    println!("get response: {:#?}", get_response);
 
-    let get = client.get("http://localhost:3000/api/handler").send()?;
-
-    let deserialized: Vec<Todo> = decode::from_read(get).unwrap();
-    println!("Deserialized: {:?}", deserialized);
+    let todos: Vec<Todo> = decode::from_read(get_response)?;
+    println!("todos: {:#?}", todos);
 
     Ok(())
 }
