@@ -9,7 +9,7 @@ async fn main() -> Result<(), Error> {
 }
 
 pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
-    if _req.method() == Method::GET {
+    if _req.method() == Method::POST {
         return set::handler(_req);
     }
 

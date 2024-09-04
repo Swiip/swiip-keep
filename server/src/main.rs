@@ -1,9 +1,8 @@
-use std::io::Cursor;
-
-use rmp_serde::{decode, encode};
+use reqwest::{blocking::Client, Error};
+use rmp_serde::encode;
 use swiip_keep_server::todo::Todo;
 
-fn main() {
+fn main() -> Result<(), Error> {
     let todos = vec![
         Todo {
             id: 1,
@@ -21,7 +20,21 @@ fn main() {
     encode::write(&mut buf, &todos).unwrap();
     println!("Serialized (MessagePack): {:?}", buf);
 
-    let cursor = Cursor::new(buf);
-    let deserialized: Vec<Todo> = decode::from_read(cursor).unwrap();
-    println!("Deserialized: {:?}", deserialized);
+    let client = Client::new();
+    let res = client
+        .post("http://localhost:3000/api/handler")
+        .body(buf)
+        .send()?;
+
+    println!("{:#?}", res);
+
+    let content = res.text();
+
+    println!("{:#?}", content);
+
+    // let cursor = Cursor::new(buf);
+    // let deserialized: Vec<Todo> = decode::from_read(cursor).unwrap();
+    // println!("Deserialized: {:?}", deserialized);
+
+    Ok(())
 }
