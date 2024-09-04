@@ -1,5 +1,5 @@
 use reqwest::{blocking::Client, Error};
-use rmp_serde::encode;
+use rmp_serde::{decode, encode};
 use swiip_keep_server::todo::Todo;
 
 fn main() -> Result<(), Error> {
@@ -11,7 +11,7 @@ fn main() -> Result<(), Error> {
         },
         Todo {
             id: 2,
-            text: String::from("second task"),
+            text: String::from("second task changed"),
             completed: false,
         },
     ];
@@ -21,20 +21,22 @@ fn main() -> Result<(), Error> {
     println!("Serialized (MessagePack): {:?}", buf);
 
     let client = Client::new();
-    let res = client
+    let post = client
         .post("http://localhost:3000/api/handler")
         .body(buf)
         .send()?;
 
-    println!("{:#?}", res);
+    println!("{:#?}", post);
 
-    let content = res.text();
+    let deserialized: String = decode::from_read(post).unwrap();
+    println!("Deserialized: {:?}", deserialized);
 
-    println!("{:#?}", content);
+    println!("{:#?}", deserialized);
 
-    // let cursor = Cursor::new(buf);
-    // let deserialized: Vec<Todo> = decode::from_read(cursor).unwrap();
-    // println!("Deserialized: {:?}", deserialized);
+    let get = client.get("http://localhost:3000/api/handler").send()?;
+
+    let deserialized: Vec<Todo> = decode::from_read(get).unwrap();
+    println!("Deserialized: {:?}", deserialized);
 
     Ok(())
 }

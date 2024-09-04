@@ -1,6 +1,6 @@
 use http::Method;
 use serde_json::json;
-use swiip_keep_server::set;
+use swiip_keep_server::{get, set};
 use vercel_runtime::{run, Body, Error, Request, Response, StatusCode};
 
 #[tokio::main]
@@ -9,6 +9,10 @@ async fn main() -> Result<(), Error> {
 }
 
 pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
+    if _req.method() == Method::GET {
+        return get::handler(_req);
+    }
+
     if _req.method() == Method::POST {
         return set::handler(_req);
     }

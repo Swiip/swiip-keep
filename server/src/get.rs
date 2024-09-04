@@ -3,26 +3,20 @@ use crate::{
     todo::Todo,
 };
 use redis::Commands;
-use rmp_serde::{decode, encode};
-use serde_json::json;
-use std::io::Cursor;
+use rmp_serde::encode;
 use vercel_runtime::{Body, Error, Request, Response, StatusCode};
 
 pub fn handler(_req: Request) -> Result<Response<Body>, Error> {
-    let cursor = Cursor::new(_req.body());
-    let deserialized: Vec<Todo> = decode::from_read(cursor).unwrap();
-    println!("Deserialized: {:?}", deserialized);
-
-    let received = json!(deserialized).to_string();
-
     let mut con = get()?;
 
-    con.set(REDIS_KEY, &received)?;
+    let read: String = con.get(REDIS_KEY)?;
 
-    println!("I wrote \"{}\" in Redis!", &received);
+    println!("I read \"{}\" in Redis!", &read);
+
+    let received: Vec<Todo> = serde_json::from_str(&read)?;
 
     let mut buf = Vec::new();
-    encode::write(&mut buf, "ok").unwrap();
+    encode::write(&mut buf, &received).unwrap();
     println!("Serialized (MessagePack): {:?}", buf);
 
     Ok(Response::builder()
