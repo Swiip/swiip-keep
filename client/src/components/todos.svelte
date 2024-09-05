@@ -14,33 +14,34 @@
     const ENTER_KEY = 13;
     const ESCAPE_KEY = 27;
 
-    let currentFilter: "all" | "active" | "completed" = "all";
-    let items: Todo[] = [];
-    let editing: number | undefined = undefined;
-    let init = true;
+    let currentFilter = $state<"all" | "active" | "completed">("all");
+    let items = $state<Todo[]>([]);
+    let editing = $state<number | undefined>(undefined);
+    let init = $state(true);
 
-    $: filtered = currentFilter === "all" ? items : items.filter(currentFilter === "completed" ? completed : active);
+    const active = (item: Todo) => !item.completed;
+    const completed = (item: Todo) => item.completed;
 
-    $: numActive = items.filter(active).length;
+    const filtered = $derived(
+        currentFilter === "all" ? items : items.filter(currentFilter === "completed" ? completed : active),
+    );
 
-    $: numCompleted = items.filter(completed).length;
+    const numActive = $derived(items.filter(active).length);
 
-    $: try {
+    const numCompleted = $derived(items.filter(completed).length);
+
+    $effect(() => {
         const save = async () => {
             if (init) {
                 return;
             }
+            console.log("save start");
             const result = await invoke<string>("save_todos", { todos: items });
             console.log("save result", result);
         };
 
-        save();
-    } catch {
-        // noop
-    }
-
-    const active = (item: Todo) => !item.completed;
-    const completed = (item: Todo) => item.completed;
+        void save();
+    });
 
     const load = async () => {
         updateView();
@@ -105,7 +106,8 @@
 <svelte:window on:hashchange={updateView} />
 
 <header class="header">
-    <h1>todos</h1>
+    <h1>TodoMVC</h1>
+    <h2>Svelte 5 / Tauri 2 / Vercel Rust</h2>
     <!-- svelte-ignore a11y-autofocus -->
     <input class="new-todo" on:keydown={createNew} placeholder="What needs to be done?" autofocus />
 </header>
