@@ -6,12 +6,12 @@ use vercel_runtime::Error;
 fn main() -> Result<(), Error> {
     let todos = vec![
         Todo {
-            id: 1,
+            id: String::from("1"),
             text: String::from("very first task"),
             completed: true,
         },
         Todo {
-            id: 2,
+            id: String::from("2"),
             text: String::from("second task changed"),
             completed: false,
         },
